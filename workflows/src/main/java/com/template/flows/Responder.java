@@ -1,17 +1,13 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import net.corda.core.flows.FlowException;
-import net.corda.core.flows.FlowLogic;
-import net.corda.core.flows.FlowSession;
-import net.corda.core.flows.InitiatedBy;
+import com.template.flows.Initiator;
+import net.corda.core.flows.*;
+import net.corda.core.node.StatesToRecord;
 
-// ******************
-// * Responder flow *
-// ******************
 @InitiatedBy(Initiator.class)
 public class Responder extends FlowLogic<Void> {
-    private FlowSession counterpartySession;
+    private final FlowSession counterpartySession;
 
     public Responder(FlowSession counterpartySession) {
         this.counterpartySession = counterpartySession;
@@ -20,7 +16,9 @@ public class Responder extends FlowLogic<Void> {
     @Suspendable
     @Override
     public Void call() throws FlowException {
-        // Responder flow logic goes here.
+        // Receive the transaction and store all its states.
+        // If we don't pass `ALL_VISIBLE`, only the states for which the node is one of the `participants` will be stored.
+        subFlow(new ReceiveTransactionFlow(counterpartySession, true, StatesToRecord.ALL_VISIBLE));
 
         return null;
     }
